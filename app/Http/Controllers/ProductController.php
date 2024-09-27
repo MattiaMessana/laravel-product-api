@@ -30,7 +30,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
             'price' => 'required|numeric',
-            'category_id' => 'required|exists:categories, id',
+            'category_id' => 'required|exists:categories,id',
         ]);
         
         if ($validator->fails()) {
@@ -50,7 +50,11 @@ class ProductController extends Controller
      */
     public function show($id)
     {
-        //
+        $product = Product::find($id);
+        if (!$product) {
+            return response()->json(['message' => 'Prodotto non trovato!'], 404);
+        }
+        return $product;
     }
 
     /**
@@ -62,7 +66,24 @@ class ProductController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'name' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'price' => 'nullable|numeric',
+            'category_id' => 'nullable|exists:categories,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $product = Product::find($id);
+        if (!$product) {
+            return response()->json(['message' => 'Prodotto non trovato'], 404);
+        }
+
+        $product->update($request->all());
+        return response()->json($product, 200);
     }
 
     /**
@@ -73,6 +94,12 @@ class ProductController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $product = Product::find($id);
+        if (!$product) {
+            return response()->json(['message' => 'Prodotto non trovato'], 404);
+        }
+
+        $product->delete();
+        return response()->json(['message' => 'Prodotto eliminato con successo'], 204);
     }
 }
